@@ -7,6 +7,7 @@ import (
 	"net/http"
 
 	"github.com/serhatguzel/bookings/internal/config"
+	"github.com/serhatguzel/bookings/internal/forms"
 	"github.com/serhatguzel/bookings/internal/models"
 	"github.com/serhatguzel/bookings/internal/render"
 )
@@ -121,5 +122,73 @@ func (m *Repository) Contact(w http.ResponseWriter, r *http.Request) {
 
 func (m *Repository) MakeReservation(w http.ResponseWriter, r *http.Request) {
 	log.Println("Make Reservation")
-	render.RenderTemplate(w, r, "make-reservation.page.tmpl", &models.TemplateData{})
+
+	var emptyReservation models.Reservation // Create an empty reservation object
+
+	data := make(map[string]interface{})   // Create a map to hold the data for the template
+	data["reservation"] = emptyReservation // Add the empty reservation to the map
+
+	render.RenderTemplate(w, r, "make-reservation.page.tmpl", &models.TemplateData{
+		Form: forms.New(nil), // Create a new form instance with no data
+		Data: data,
+	})
+}
+
+func (m *Repository) PostReservation(w http.ResponseWriter, r *http.Request) {
+	log.Println("Post Reservation")
+
+	error := r.ParseForm()
+	if error != nil {
+		log.Println(error)
+		return
+	}
+
+	reservation := models.Reservation{
+		FirstName: r.Form.Get("first_name"),
+		LastName:  r.Form.Get("last_name"),
+		Email:     r.Form.Get("email"),
+		Phone:     r.Form.Get("phone"),
+	}
+
+	form := forms.New(r.PostForm) // Create a new form instance with the posted data
+
+	form.Required("first_name", "last_name", "email", "phone") // Check required fields
+	form.MinLength("first_name", 3, r)                         // Check minimum length for first name
+	form.IsEmail("email")                                      // Check if email is valid
+
+	if !form.Valid() {
+
+		data := make(map[string]interface{}) // Create a map to hold the data for the template
+		data["reservation"] = reservation    // Add the reservation data to the map
+		// If the form is not valid, render the make-reservation page with the form errors
+		render.RenderTemplate(w, r, "make-reservation.page.tmpl", &models.TemplateData{
+			Form: form,
+			Data: data,
+		})
+		return
+	}
+
+	m.App.Session.Put(r.Context(), "reservation", reservation)       // Store the reservation in the session
+	http.Redirect(w, r, "/reservation-summary", http.StatusSeeOther) // Redirect to the reservation summary page
+
+}
+
+func (m *Repository) ReservationSummary(w http.ResponseWriter, r *http.Request) {
+	log.Println("Reservation Summary")
+
+	reservation, ok := m.App.Session.Get(r.Context(), "reservation").(models.Reservation) // Get the reservation from the session
+	if !ok {
+		log.Println("Cannot get reservation from session")
+		m.App.Session.Put(r.Context(), "error", "Cannot get reservation from session")
+		http.Redirect(w, r, "/", http.StatusSeeOther) // Redirect to the home page if reservation is not found
+		return
+	}
+
+	m.App.Session.Remove(r.Context(), "reservation") // Remove the reservation from the session
+	data := make(map[string]interface{})             // Create a map to hold the data for the template
+	data["reservation"] = reservation                // Add the reservation data to the map
+
+	render.RenderTemplate(w, r, "reservation-summary.page.tmpl", &models.TemplateData{
+		Data: data,
+	})
 }

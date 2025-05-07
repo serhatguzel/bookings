@@ -1,5 +1,7 @@
 package models
 
+import "github.com/serhatguzel/bookings/internal/forms"
+
 type TemplateData struct {
 	StringMap map[string]string      // Eğer sadece string göndermek istiyorsanız bu şekilde yapabilirsiniz.
 	IntMap    map[string]int         // Eğer sadece int göndermek istiyorsanız bu şekilde yapabilirsiniz.
@@ -8,5 +10,6 @@ type TemplateData struct {
 	CSRFToken string                 // CSRF token göndermek istiyorsanız bu şekilde yapabilirsiniz.
 	Flash     string                 // Flash mesajı göndermek istiyorsanız bu şekilde yapabilirsiniz.
 	Warning   string                 // Uyarı mesajı göndermek istiyorsanız bu şekilde yapabilirsiniz.
-	Error     string                 // Hata mesajı göndermek istiyorsanız bu şekilde yapabilirsiniz.
+	Error     string
+	Form      *forms.Form // Hata mesajı göndermek istiyorsanız bu şekilde yapabilirsiniz.
 }

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/gob"
 	"fmt"
 	"log"
 	"net/http"
@@ -9,6 +10,7 @@ import (
 	"github.com/alexedwards/scs/v2"
 	"github.com/serhatguzel/bookings/internal/config"
 	"github.com/serhatguzel/bookings/internal/handlers"
+	"github.com/serhatguzel/bookings/internal/models"
 	"github.com/serhatguzel/bookings/internal/render"
 )
 
@@ -18,6 +20,9 @@ var app config.AppConfig
 var session *scs.SessionManager // SCS oturum yöneticisi
 
 func main() {
+
+	// what am I going to put in the session
+	gob.Register(models.Reservation{}) // Reservation yapısını oturumda saklamak için kullanıyoruz
 
 	// change this to true when in production
 	app.InProduction = false

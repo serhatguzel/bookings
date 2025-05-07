@@ -107,13 +107,28 @@
             }
 
             function notifyModal(title, text, icon, confirmButtonText) {
-            Swal.fire({
-                title: title,
-                html: text,
-                icon: icon,
-                confirmButtonText: confirmButtonText
-            });
+                Swal.fire({
+                    title: title,
+                    html: text,
+                    icon: icon,
+                    confirmButtonText: confirmButtonText
+                });
             }
+
+            {{with .Error}}
+
+                notify("{{.}}","error")
+            {{end}}
+
+            {{with .Flash}}
+
+                notify("{{.}}","success")
+            {{end}}
+
+            {{with .Warning}}
+
+                notify("{{.}}","warning")
+            {{end}}
 
             function Prompt(){
 
